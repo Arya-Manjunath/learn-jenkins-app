@@ -6,6 +6,7 @@ pipeline {
             agent {
                 docker {
                     image 'node:alpine'
+                    args '-u root'  // Run as root user
                     reuseNode true
                 }
             }
