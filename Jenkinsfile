@@ -22,8 +22,19 @@ pipeline {
         }
         
         stage('Test') {  // This stage should not be nested inside the Build stage
+            
+             agent {
+                docker {
+                    image 'node:alpine'
+                    reuseNode true
+                }
+            }
+
             steps {
-                sh 'test -f build/index.html'
+                sh '''
+                    test -f build/index.html
+                    npm test
+                    '''
             }
         }
     }
