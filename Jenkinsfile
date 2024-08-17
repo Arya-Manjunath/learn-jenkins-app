@@ -10,7 +10,6 @@ pipeline {
                 }
             }
             steps {
-               
                 sh '''
                     ls -la
                     node --version
@@ -20,10 +19,12 @@ pipeline {
                     ls -la
                 '''
             }
-            stage ('Test'){
+        }
+        
+        stage('Test') {  // This stage should not be nested inside the Build stage
+            steps {
                 echo 'Test Stage'
             }
         }
-        
     }
 }
