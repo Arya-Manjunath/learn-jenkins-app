@@ -37,6 +37,25 @@ pipeline {
                     '''
             }
         }
+
+         stage('E2E') {  // This stage should not be nested inside the Build stage
+            
+             agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.46.0-jammy'
+                    reuseNode true
+                }
+            }
+
+            steps {
+                sh '''
+                   npm install -g serve
+                   serve -s build
+                   npx playwright test
+
+                    '''
+            }
+        }
     }
 
     post{
