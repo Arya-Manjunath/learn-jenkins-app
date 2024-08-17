@@ -23,7 +23,7 @@ pipeline {
         
         stage('Test') {  // This stage should not be nested inside the Build stage
             steps {
-                echo 'Test Stage'
+                sh 'test -f build/index.html'
             }
         }
     }
