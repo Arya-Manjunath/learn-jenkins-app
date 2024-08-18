@@ -1,28 +1,32 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Build') {
-            agent {
-                docker {
-                    image 'node:alpine'
-                    args '-u root'  // Run as root user
-                    reuseNode true
-                }
-            }
-            steps {
-                sh '''
-                    ls -la
-                    node --version
-                    npm --version
-                    npm ci
-                    npm run build
-                    ls -la
-                '''
-            }
-        }
-        
-        stage('Test') {  // This stage should not be nested inside the Build stage
+
+
+    // stages {
+    //     stage('Build') {
+    //         agent {
+    //             docker {
+    //                 image 'node:alpine'
+    //                 args '-u root'  // Run as root user
+    //                 reuseNode true
+    //             }
+    //         }
+    //         steps {
+    //             sh '''
+    //                 ls -la
+    //                 node --version
+    //                 npm --version
+    //                 npm ci
+    //                 npm run build
+    //                 ls -la
+    //             '''
+    //         }
+    //     }
+
+        stage('Tests'){
+            parallel {
+                stage('Unit Test') {  // This stage should not be nested inside the Build stage
             
              agent {
                 docker {
@@ -48,6 +52,10 @@ pipeline {
                     args '-u root:root'
                 }
             }
+            }
+        }
+        
+        
 
             steps {
                 sh '''
