@@ -1,78 +1,79 @@
 pipeline {
     agent any
 
+    stages {
+        // Uncomment the Build stage if needed
+        // stage('Build') {
+        //     agent {
+        //         docker {
+        //             image 'node:alpine'
+        //             args '-u root'  // Run as root user
+        //             reuseNode true
+        //         }
+        //     }
+        //     steps {
+        //         sh '''
+        //             ls -la
+        //             node --version
+        //             npm --version
+        //             npm ci
+        //             npm run build
+        //             ls -la
+        //         '''
+        //     }
+        // }
 
-
-    // stages {
-    //     stage('Build') {
-    //         agent {
-    //             docker {
-    //                 image 'node:alpine'
-    //                 args '-u root'  // Run as root user
-    //                 reuseNode true
-    //             }
-    //         }
-    //         steps {
-    //             sh '''
-    //                 ls -la
-    //                 node --version
-    //                 npm --version
-    //                 npm ci
-    //                 npm run build
-    //                 ls -la
-    //             '''
-    //         }
-    //     }
-
-        stage('Tests'){
+        stage('Tests') {
             parallel {
-                stage('Unit Test') {  // This stage should not be nested inside the Build stage
-            
-             agent {
-                docker {
-                    image 'node:alpine'
-                    reuseNode true
+                stage('Unit Test') {
+                    agent {
+                        docker {
+                            image 'node:alpine'
+                            reuseNode true
+                        }
+                    }
+                    steps {
+                        sh '''
+                            test -f build/index.html
+                            npm test
+                        '''
+                    }
                 }
-            }
 
-            steps {
-                sh '''
-                    test -f build/index.html
-                    npm test
-                    '''
-            }
-        }
-
-         stage('E2E') {  // This stage should not be nested inside the Build stage
-            
-             agent {
-                docker {
-                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                    reuseNode true
-                    args '-u root:root'
+                stage('E2E') {
+                    agent {
+                        docker {
+                            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                            reuseNode true
+                            args '-u root:root'
+                        }
+                    }
+                    steps {
+                        sh '''
+                            npm install serve
+                            node_modules/.bin/serve -s build &
+                            sleep 10
+                            npx playwright test --reporter=html
+                        '''
+                    }
                 }
-            }
-            }
-        }
-        
-        
-
-            steps {
-                sh '''
-                   npm install serve
-                   node_modules/.bin/serve -s build &
-                   sleep 10
-                   npx playwright test --reporter=html
-
-                    '''
             }
         }
     }
 
-    post{
+    post {
         always {
             junit 'jest-results/junit.xml'
-            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+            publishHTML([
+                allowMissing: false, 
+                alwaysLinkToLastBuild: false, 
+                keepAll: false, 
+                reportDir: 'playwright-report', 
+                reportFiles: 'index.html', 
+                reportName: 'playwright HTML Report', 
+                reportTitles: '', 
+                useWrapperFileDirectly: true
+            ])
         }
     }
 }
